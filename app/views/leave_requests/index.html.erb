@@ -1,0 +1,92 @@
+  <div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2><%= current_user.admin? ? "All Leave Requests" : "Your Leave Requests" %></h2>
+      <% unless current_user.admin? %>
+        <%= link_to "New Leave", new_leave_request_path, class: "btn btn-primary" %>
+      <% end %>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover align-middle bg-white shadow-sm">
+        <thead class="table-light">
+        <tr>
+          <% if current_user.admin? %>
+            <th>Employee</th>
+          <% end %>
+          <th>Start Date</th>
+          <th>End Date</th>
+          <th>Reason</th>
+          <th>Status</th>
+          <th>File</th>
+          <th class="text-center">Actions</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <% @leave_requests.each do |request| %>
+          <tr>
+            <% if current_user.admin? %>
+              <td><%= request.employee.name %></td>
+            <% end %>
+
+            <td><%= request.start_date.strftime("%Y-%m-%d") %></td>
+            <td><%= request.end_date.strftime("%Y-%m-%d") %></td>
+            <td><%= truncate(request.reason, length: 30) %></td>
+
+            <td>
+                <span class="badge
+                  <%= case request.status
+                      when "submitted" then "bg-secondary"
+                      when "approved" then "bg-success"
+                      when "rejected" then "bg-danger"
+                      end %>">
+                  <%= request.status.capitalize %>
+                </span>
+            </td>
+
+            <% if request.file_url.attached? %>
+              <%= link_to "Download", rails_blob_url(request.file_url, disposition: "attachment"), class: "btn btn-sm btn-outline-secondary", target: "_blank" %>
+            <% else %>
+              <span class="text-muted">No File</span>
+            <% end %>
+
+
+            <td>
+              <% if current_user.admin? && request.status == "submitted" %>
+                <%= form_with url: leave_request_path(request), method: :patch, local: true do |f| %>
+                  <div class="input-group input-group-sm">
+                    <%= f.select :status, options_for_select([["Approve", "approved"], ["Reject", "rejected"]]), {}, class: "form-select" %>
+                    <%= f.text_field :comments, placeholder: "Comments (optional)", class: "form-control" %>
+                    <%= f.hidden_field :reviewed_at, value: Time.current %>
+                    <%= f.hidden_field :approver_id, value: current_user.id %>
+                    <button type="submit" class="btn btn-success">Submit</button>
+                  </div>
+                <% end %>
+
+              <% elsif current_user == request.employee && request.status == "submitted" %>
+                <div class="d-flex gap-2">
+                  <%= link_to "Edit", edit_leave_request_path(request), class: "btn btn-sm btn-warning" %>
+                  <%= button_to "Delete", leave_request_path(request), method: :delete, data: { confirm: "Are you sure?" }, class: "btn btn-sm btn-danger" %>
+                </div>
+
+              <% else %>
+                <span class="text-muted">No actions</span>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <% unless current_user.admin? %>
+      <div class="card mt-5 shadow-sm">
+        <div class="card-header">
+          <h5 class="mb-0">New Leave Request</h5>
+        </div>
+        <div class="card-body">
+          <%= render "form" %>
+        </div>
+      </div>
+    <% end %>
+  </div>

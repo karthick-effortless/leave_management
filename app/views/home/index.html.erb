@@ -1,0 +1,61 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>Leave Requests</h2>
+  <%= link_to "New Leave", new_leave_request_path, class: "btn btn-primary" %>
+</div>
+
+<table class="table table-hover bg-white shadow-sm">
+  <thead class="table-light">
+  <tr>
+    <th>Employee</th>
+    <th>Start</th>
+    <th>End</th>
+    <th>Reason</th>
+    <th>Status</th>
+    <th>PDF</th>
+    <th>Actions</th>
+  </tr>
+  </thead>
+  <tbody>
+  <% @leave_requests.each do |request| %>
+    <tr>
+      <td><%= request.employee.name %></td>
+      <td><%= request.start_date %></td>
+      <td><%= request.end_date %></td>
+      <td><%= request.reason.truncate(25) %></td>
+      <td>
+          <span class="badge <%= request.status == 'submitted' ? 'bg-secondary' : request.status == 'approved' ? 'bg-success' : 'bg-danger' %>">
+            <%= request.status.capitalize %>
+          </span>
+      </td>
+      <td>
+        <% if request.file_url.attached? %>
+          <%= link_to "View", rails_blob_url(request.file_url, disposition: "inline"), target: "_blank", class: "btn btn-sm btn-outline-secondary" %>
+        <% else %>
+          <span class="text-muted">—</span>
+        <% end %>
+      </td>
+
+      <td>
+        <% if request.status == "submitted" && request.employee == current_user %>
+          <div class="d-flex flex-wrap gap-2">
+            <%= link_to "Edit", edit_leave_request_path(request), class: "btn btn-sm btn-outline-primary" %>
+            <%= button_to "Delete", leave_request_path(request), method: :delete, data: { confirm: "Are you sure?" }, class: "btn btn-sm btn-outline-danger" %>
+          </div>
+
+      <% elsif current_user.admin? && request.status == "submitted" %>
+          <%= form_with url: approve_leave_request_path(request), method: :patch, local: true do |f| %>
+            <div class="input-group">
+              <%= f.select :status, options_for_select([["Approve", "approved"], ["Reject", "rejected"]]), {}, class: "form-select form-select-sm" %>
+              <%= f.text_field :comments, placeholder: "Comments (optional)", class: "form-control form-control-sm" %>
+              <%= f.submit "Submit", class: "btn btn-sm btn-success" %>
+            </div>
+          <% end %>
+
+      <% else %>
+          —
+        <% end %>
+      </td>
+    </tr>
+  <% end %>
+  </tbody>
+</table>

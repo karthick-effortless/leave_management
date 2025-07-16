@@ -1,0 +1,9 @@
+<h2>User Details</h2>
+
+<div class="card p-3 shadow-sm">
+  <p><strong>Name:</strong> <%= @user.name %></p>
+  <p><strong>Email:</strong> <%= @user.email %></p>
+  <p><strong>Role:</strong> <%= @user.role.capitalize %></p>
+</div>
+
+<%= link_to "Back to Users", users_path, class: "btn btn-secondary mt-3" %>

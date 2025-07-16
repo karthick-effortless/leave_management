@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  leave_request: one
+  approver: one
+  status: MyString
+  reviewed_at: 2025-07-16 12:44:10
+  comments: MyText
+
+two:
+  leave_request: two
+  approver: two
+  status: MyString
+  reviewed_at: 2025-07-16 12:44:10
+  comments: MyText
